@@ -33,7 +33,7 @@ export function makeOptions(cwd: string, args: string[]): Options {
         })
         .option("fixName", {
             alias: "f",
-            describe: "The name(s) of codefixe(s) to apply",
+            describe: "The name(s) of codefix(es) to apply",
             type: "string",
             array: true,
             default: []

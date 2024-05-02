@@ -242,12 +242,12 @@ export async function codefixProject(opt: Options, host: Host): Promise<string> 
       break;
     }
 
-    //Limit the number of passes
-    if (passCount === 5) {
+    // Limit the number of passes
+    if (passCount === 5 || (!opt.write && !opt.interactiveMode)) {
       break;
     }
 
-    passCount++;
+    // passCount++;
   }
 
   printSummary(host, opt, invalidFiles, allChangedFiles, allNoAppliedChangesByFile);
@@ -259,7 +259,7 @@ export async function codefixProject(opt: Options, host: Host): Promise<string> 
 // Finds the fixes that don't make any changes (install module), and out of scope of the use case such as import, fixMissingFunctionDeclaration, fixMissingMember, spelling
 function isNotAppliedFix(fixAndDiagnostic: FixAndDiagnostic): boolean {
   return !fixAndDiagnostic.fix.changes.length
-    || fixAndDiagnostic.fix.fixName === 'import'
+    // || fixAndDiagnostic.fix.fixName === 'import'
     || fixAndDiagnostic.fix.fixName === 'fixMissingFunctionDeclaration'
     || fixAndDiagnostic.fix.fixName === 'fixMissingMember'
     || fixAndDiagnostic.fix.fixName === 'spelling';
@@ -309,7 +309,7 @@ export async function getCodeFixesFromProject(project: Project, opt: Options, ho
 
   const codefixesPerFile = filteredDiagnostics.map(function (d: readonly Diagnostic[]) {
     const fixesAndDiagnostics = (getCodeFixesForFile(project, d));
-    return fixesAndDiagnostics;
+    return fixesAndDiagnostics.slice(0, 1);
   });
 
   const flatCodeFixesAndDiagnostics: FixAndDiagnostic[] = _.flatten(codefixesPerFile);
@@ -382,7 +382,7 @@ export function filterDiagnosticsByFileAndErrorCode(diagnostics: (readonly Diagn
         returnStrings.push(`No diagnostics found for files`);
       }
       else {
-        returnStrings.push(`Found ${length} diagnostics for the given files`);
+        returnStrings.push(`Found ${length} diagnostics for the given files: ` + validFiles.join(', '));
       }
       filteredDiagnostics = filteredDiagnosticsForFile;
     }
@@ -484,7 +484,7 @@ export function getTextChangeDict(codefixes: readonly CodeFixAction[]): Map<stri
 export function filterCodeFixesByFixName(codeFixesAndDiagnostics: FixAndDiagnostic[], fixNames: string[]): [FixAndDiagnostic[], string[]] {
   if (fixNames.length === 0) {
     // empty argument behavior... currently, we just keep all fixes if none are specified
-    return [codeFixesAndDiagnostics, [`Found ${codeFixesAndDiagnostics.length} codefixes`]];
+    return [codeFixesAndDiagnostics, [`Found ${codeFixesAndDiagnostics.length} codefixes: ${codeFixesAndDiagnostics.map(({fix: {fixName}}) => fixName).join(', ')}`]];
   }
   // cannot sort by fixId right now since fixId is a {}
   // do we want to distinguish the case when no codefixes are picked? (no hits)
